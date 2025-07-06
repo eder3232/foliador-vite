@@ -52,13 +52,6 @@ export async function firmarPdf(
   // Calcular opacidad (0-1) desde transparencia (0-100)
   const opacity = transparencyToOpacity(config.transparency)
 
-  console.log(
-    'Transparencia config:',
-    config.transparency,
-    'Opacidad calculada:',
-    opacity
-  )
-
   // Determinar orden de páginas según dirección
   const pageIndices =
     config.direction === 'first'

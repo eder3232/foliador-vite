@@ -14,6 +14,7 @@ import {
   FileText,
   Loader2,
 } from 'lucide-react'
+import { FolioOverlay } from './FolioOverlay'
 import 'react-pdf/dist/Page/AnnotationLayer.css'
 import 'react-pdf/dist/Page/TextLayer.css'
 
@@ -29,6 +30,7 @@ export function PdfPreview() {
   const [scale, setScale] = useState(1.0)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [pageDimensions, setPageDimensions] = useState({ width: 0, height: 0 })
 
   // Obtener archivo PDF del store
   const pdfFile = state.context.fileManager?.getSnapshot().context.file
@@ -54,6 +56,12 @@ export function PdfPreview() {
   const onDocumentLoadStart = useCallback(() => {
     setIsLoading(true)
     setError(null)
+  }, [])
+
+  // Función para manejar carga de página
+  const onPageLoadSuccess = useCallback((page: any) => {
+    const { width, height } = page.getViewport({ scale: 1.0 })
+    setPageDimensions({ width, height })
   }, [])
 
   // Navegación de páginas
@@ -216,7 +224,7 @@ export function PdfPreview() {
           )}
 
           {!isLoading && !error && (
-            <div className="h-full overflow-auto flex justify-center">
+            <div className="h-full overflow-auto flex justify-center relative">
               <Document
                 file={pdfFile}
                 onLoadSuccess={onDocumentLoadSuccess}
@@ -235,22 +243,35 @@ export function PdfPreview() {
                   </div>
                 }
               >
-                <Page
-                  pageNumber={currentPage}
-                  scale={scale}
-                  loading={
-                    <div className="flex items-center justify-center h-32">
-                      <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
-                    </div>
-                  }
-                  error={
-                    <div className="flex items-center justify-center h-32">
-                      <p className="text-sm text-red-500">
-                        Error al cargar la página
-                      </p>
-                    </div>
-                  }
-                />
+                <div className="relative">
+                  <Page
+                    pageNumber={currentPage}
+                    scale={scale}
+                    onLoadSuccess={onPageLoadSuccess}
+                    loading={
+                      <div className="flex items-center justify-center h-32">
+                        <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
+                      </div>
+                    }
+                    error={
+                      <div className="flex items-center justify-center h-32">
+                        <p className="text-sm text-red-500">
+                          Error al cargar la página
+                        </p>
+                      </div>
+                    }
+                  />
+
+                  {/* Folio Overlay */}
+                  {pageDimensions.width > 0 && pageDimensions.height > 0 && (
+                    <FolioOverlay
+                      currentPage={currentPage}
+                      scale={scale}
+                      pageWidth={pageDimensions.width * scale}
+                      pageHeight={pageDimensions.height * scale}
+                    />
+                  )}
+                </div>
               </Document>
             </div>
           )}
