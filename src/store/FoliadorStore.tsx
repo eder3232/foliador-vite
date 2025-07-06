@@ -249,21 +249,6 @@ export const pdfFolioOrchestrator = setup({
       },
     },
     processing: {
-      invoke: {
-        src: 'processor',
-        onDone: {
-          target: 'completed',
-        },
-        onError: {
-          target: 'error',
-          actions: assign({
-            error: ({ event }) => {
-              const error = event.error as Error
-              return error?.message || 'Error desconocido'
-            },
-          }),
-        },
-      },
       on: {
         CANCEL_PROCESSING: {
           target: 'ready',
@@ -273,6 +258,28 @@ export const pdfFolioOrchestrator = setup({
           actions: ['updateProgress'],
         },
       },
+      always: [
+        {
+          guard: ({ context }) => {
+            const processorState = context.processor?.getSnapshot()
+            return processorState?.matches('completed') ?? false
+          },
+          target: 'completed',
+        },
+        {
+          guard: ({ context }) => {
+            const processorState = context.processor?.getSnapshot()
+            return processorState?.matches('error') ?? false
+          },
+          target: 'error',
+          actions: assign({
+            error: ({ context }) => {
+              const processorState = context.processor?.getSnapshot()
+              return processorState?.context.error || 'Error desconocido'
+            },
+          }),
+        },
+      ],
     },
     completed: {
       on: {

@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 export const myActor = createActor(pdfFolioOrchestrator).start()
 
 // Hook personalizado
-export function useMyMachine() {
+export function useFoliadorStore() {
   const [snapshot, setSnapshot] = useState(myActor.getSnapshot())
 
   useEffect(() => {

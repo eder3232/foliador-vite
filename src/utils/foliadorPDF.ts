@@ -1,6 +1,7 @@
 import { PDFDocument, rgb, StandardFonts, degrees } from 'pdf-lib'
-import numerosEnLetras from './numeros-en-letras'
+import numerosEnLetras from './numerosEnLetras'
 import { initialSeparation } from './initialSeparation'
+import { transparencyToOpacity } from './transparencyUtils'
 
 interface ConfigManagerContext {
   // Posicionamiento
@@ -33,8 +34,6 @@ export async function firmarPdf(
   file: File | Uint8Array,
   config: ConfigManagerContext
 ): Promise<Uint8Array> {
-  console.log('config', config)
-
   // Leer el archivo como Uint8Array si es File
   let pdfBytes: Uint8Array
   if (file instanceof File) {
@@ -50,8 +49,15 @@ export async function firmarPdf(
   // Convertir color hex a rgb
   const rgbColor = hexToRgb(config.color)
 
-  // Calcular transparencia (0-1)
-  const alpha = (100 - config.transparency) / 100
+  // Calcular opacidad (0-1) desde transparencia (0-100)
+  const opacity = transparencyToOpacity(config.transparency)
+
+  console.log(
+    'Transparencia config:',
+    config.transparency,
+    'Opacidad calculada:',
+    opacity
+  )
 
   // Determinar orden de páginas según dirección
   const pageIndices =
@@ -123,7 +129,7 @@ export async function firmarPdf(
         size: config.fontSize,
         font,
         color: rgb(rgbColor.r, rgbColor.g, rgbColor.b),
-        opacity: 1, //alpha,
+        opacity: opacity, //alpha,
         rotate: degrees(finalRotation),
       })
 
@@ -134,7 +140,7 @@ export async function firmarPdf(
         size: config.fontSize,
         font,
         color: rgb(rgbColor.r, rgbColor.g, rgbColor.b),
-        opacity: 1, //alpha,
+        opacity: opacity, //alpha,
         rotate: degrees(finalRotation),
       })
     } else {
@@ -145,7 +151,7 @@ export async function firmarPdf(
         size: config.fontSize,
         font,
         color: rgb(rgbColor.r, rgbColor.g, rgbColor.b),
-        opacity: 1, //alpha,
+        opacity: opacity, //alpha,
         rotate: degrees(finalRotation),
       })
     }

@@ -226,7 +226,7 @@ export const configManagerMachine = setup({
       randomnessY: 0,
       randomnessRotation: 0,
       color: '#000000',
-      transparency: 100,
+      transparency: 100, // 100 = completamente opaco
       fontSize: 12,
       startNumber: 1,
       direction: 'first',
@@ -248,7 +248,7 @@ export const configManagerMachine = setup({
     randomnessY: 0,
     randomnessRotation: 0,
     color: '#000000',
-    transparency: 0,
+    transparency: 0, // 100 = completamente opaco
     fontSize: 12,
     startNumber: 1,
     direction: 'first',

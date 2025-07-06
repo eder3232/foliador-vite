@@ -2,8 +2,6 @@ import { assign, fromPromise, setup } from 'xstate'
 import { firmarPdf } from '../utils/foliadorPDF'
 import type { ConfigManagerContext } from './ConfigManager'
 
-// Tipo para la configuración del ConfigManager
-
 export const pdfProcessorMachine = setup({
   types: {
     context: {} as {
@@ -26,11 +24,19 @@ export const pdfProcessorMachine = setup({
       }: {
         input: { file: File; config: ConfigManagerContext }
       }) => {
+        console.log('Iniciando procesamiento del PDF...')
+
         try {
+          // Simular progreso inicial
+          await new Promise((resolve) => setTimeout(resolve, 100))
+
           // Usar la función de foliado desde utils
           const processedPdfBytes = await firmarPdf(input.file, input.config)
+
+          console.log('PDF procesado exitosamente')
           return processedPdfBytes
         } catch (error) {
+          console.error('Error en procesamiento:', error)
           throw new Error(
             `Error al procesar PDF: ${
               error instanceof Error ? error.message : 'Error desconocido'
@@ -71,6 +77,16 @@ export const pdfProcessorMachine = setup({
       config: ({ event }) =>
         event.type === 'START_PROCESSING' ? event.config : null,
     }),
+    clearError: assign({
+      error: null,
+    }),
+    resetProcessor: assign({
+      progress: 0,
+      error: null,
+      processedPdf: null,
+      file: null,
+      config: null,
+    }),
   },
 }).createMachine({
   id: 'pdfProcessor',
@@ -94,22 +110,34 @@ export const pdfProcessorMachine = setup({
     processing: {
       invoke: {
         src: 'processPdf',
-        input: ({ context }) => ({
-          file: context.file!,
-          config: context.config!,
-        }),
+        input: ({ context }) => {
+          console.log('Enviando archivo y configuración al actor:', {
+            file: context.file?.name,
+            config: context.config,
+          })
+          return {
+            file: context.file!,
+            config: context.config!,
+          }
+        },
         onDone: {
           target: 'completed',
           actions: ['setProcessedPdf'],
         },
         onError: {
           target: 'error',
-          actions: ['setError'],
+          actions: assign({
+            error: ({ event }) => {
+              const error = event.error as Error
+              return error?.message || 'Error desconocido en el procesamiento'
+            },
+          }),
         },
       },
       on: {
         CANCEL_PROCESSING: {
           target: 'idle',
+          actions: ['resetProcessor'],
         },
       },
     },
@@ -120,7 +148,7 @@ export const pdfProcessorMachine = setup({
       on: {
         START_PROCESSING: {
           target: 'processing',
-          actions: ['saveFileAndConfig'],
+          actions: ['saveFileAndConfig', 'clearError'],
         },
       },
     },

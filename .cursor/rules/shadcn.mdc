@@ -1,0 +1,5 @@
+---
+globs: .tsx
+alwaysApply: false
+description: Intenta usar los componentes de Shadcn/ui de la carpeta "src/components/ui/*" en lugar de elementos HTML básicos
+---

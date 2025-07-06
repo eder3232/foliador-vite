@@ -1,0 +1,4 @@
+---
+description: Always try to use TailwindCSS instead of inline `style` props
+alwaysApply: false
+---
