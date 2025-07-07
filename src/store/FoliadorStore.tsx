@@ -168,6 +168,11 @@ export const pdfFolioOrchestrator = setup({
         return 0
       },
     }),
+    resetProcessor: assign({
+      processor: ({ spawn }) => spawn('processor'),
+      progress: 0,
+      error: null,
+    }),
   },
   guards: {
     isFileReady: ({ context }) => {
@@ -289,6 +294,7 @@ export const pdfFolioOrchestrator = setup({
         },
         EDIT_CONFIG: {
           target: 'ready',
+          actions: ['resetProcessor'],
         },
         RESTART_AFTER_COMPLETE: {
           target: 'idle',
