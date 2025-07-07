@@ -1,7 +1,11 @@
 import { useFoliadorStore } from '@/store/useFoliadorStore'
 import { initialSeparation } from '@/utils/initialSeparation'
 import numerosEnLetras from '@/utils/numerosEnLetras'
-import { transparencyToOpacity } from '@/utils/transparencyUtils'
+import {
+  transparencyToOpacity,
+  cmToPixels,
+  calculateBasePositionCSS,
+} from '@/utils/transparencyUtils'
 
 interface FolioOverlayProps {
   currentPage: number
@@ -76,29 +80,23 @@ export function FolioOverlay({
     const positionY = config?.positionY || 0
     const rotation = config?.rotation || 0
 
-    // Convertir separación inicial de cm a píxeles (aproximadamente 37.8 píxeles por cm)
-    const SEPARATION_X_PX = initialSeparation.x * 37.8
-    const SEPARATION_Y_PX = initialSeparation.y * 37.8
+    // Convertir separación inicial de cm a píxeles
+    const SEPARATION_X_PX = cmToPixels(initialSeparation.x)
+    const SEPARATION_Y_PX = cmToPixels(initialSeparation.y)
 
-    // Calcular posición base según la esquina
-    let baseX = 0
-    let baseY = 0
-
-    if (cornerVertical === 'top') {
-      baseY = SEPARATION_Y_PX
-    } else {
-      baseY = pageHeight - SEPARATION_Y_PX
-    }
-
-    if (cornerHorizontal === 'left') {
-      baseX = SEPARATION_X_PX
-    } else {
-      baseX = pageWidth - SEPARATION_X_PX
-    }
+    // Calcular posición base usando la función utilitaria para CSS (sistema top-left)
+    const { baseX, baseY } = calculateBasePositionCSS(
+      cornerVertical,
+      cornerHorizontal,
+      pageWidth,
+      pageHeight,
+      SEPARATION_X_PX,
+      SEPARATION_Y_PX
+    )
 
     // Aplicar ajustes de posición (convertir de cm a píxeles)
-    const adjustedX = baseX + positionX * 37.8
-    const adjustedY = baseY + positionY * 37.8
+    const adjustedX = baseX + cmToPixels(positionX)
+    const adjustedY = baseY + cmToPixels(positionY)
 
     // Aplicar zoom
     const scaledX = adjustedX * scale

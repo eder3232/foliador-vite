@@ -1,7 +1,11 @@
 import { PDFDocument, rgb, StandardFonts, degrees } from 'pdf-lib'
 import numerosEnLetras from './numerosEnLetras'
 import { initialSeparation } from './initialSeparation'
-import { transparencyToOpacity } from './transparencyUtils'
+import {
+  transparencyToOpacity,
+  cmToPoints,
+  calculateBasePosition,
+} from './transparencyUtils'
 
 interface ConfigManagerContext {
   // Posicionamiento
@@ -61,39 +65,32 @@ export async function firmarPdf(
     config.direction
   )
 
-  // Separaciones fijas en centímetros (convertir a puntos: 1cm = 28.35 puntos)
-  const BASE_SEPARATION_X = initialSeparation.x * 28.35 // 3cm horizontal desde la esquina
-  const BASE_SEPARATION_Y = initialSeparation.y * 28.35 // 2cm vertical desde la esquina
+  // Separaciones fijas en centímetros (convertir a puntos)
+  const BASE_SEPARATION_X = cmToPoints(initialSeparation.x)
+  const BASE_SEPARATION_Y = cmToPoints(initialSeparation.y)
 
   for (let i = 0; i < pages.length; i++) {
     const page = pages[i]
     const pageWidth = page.getWidth()
     const pageHeight = page.getHeight()
 
-    // Calcular posición base según esquina con separación fija
-    let baseX: number
-    let baseY: number
-
-    // Aplicar separación base según la esquina seleccionada
-    if (config.cornerVertical === 'top') {
-      baseY = pageHeight - BASE_SEPARATION_Y
-    } else {
-      baseY = BASE_SEPARATION_Y
-    }
-
-    if (config.cornerHorizontal === 'left') {
-      baseX = BASE_SEPARATION_X
-    } else {
-      baseX = pageWidth - BASE_SEPARATION_X
-    }
+    // Calcular posición base usando la función utilitaria (misma lógica que preview)
+    const { baseX, baseY } = calculateBasePosition(
+      config.cornerVertical,
+      config.cornerHorizontal,
+      pageWidth,
+      pageHeight,
+      BASE_SEPARATION_X,
+      BASE_SEPARATION_Y
+    )
 
     // Aplicar ajustes adicionales de posición (en centímetros)
-    const adjustmentX = config.positionX * 28.35 // Convertir cm a puntos
-    const adjustmentY = config.positionY * 28.35 // Convertir cm a puntos
+    const adjustmentX = cmToPoints(config.positionX)
+    const adjustmentY = cmToPoints(config.positionY)
 
     // Aplicar aleatoriedad (en centímetros)
-    const randomX = (Math.random() - 0.5) * config.randomnessX * 28.35 // Convertir cm a puntos
-    const randomY = (Math.random() - 0.5) * config.randomnessY * 28.35 // Convertir cm a puntos
+    const randomX = (Math.random() - 0.5) * cmToPoints(config.randomnessX)
+    const randomY = (Math.random() - 0.5) * cmToPoints(config.randomnessY)
     const randomRotation = (Math.random() - 0.5) * config.randomnessRotation // Ya está en grados
 
     const finalX = baseX + adjustmentX + randomX

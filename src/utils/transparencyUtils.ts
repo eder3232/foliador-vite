@@ -81,3 +81,91 @@ export function testTransparencyConversion() {
 
   console.log('=== Fin de Prueba ===')
 }
+
+// Constantes para conversión de unidades (consistentes entre preview y PDF)
+export const UNITS = {
+  // 1 cm = 28.35 puntos (estándar PDF)
+  CM_TO_POINTS: 28.35,
+  // Para pantalla: 1 punto = 1.33 píxeles (asumiendo 96 DPI)
+  POINTS_TO_PIXELS: 1.33,
+  // Factor directo de cm a píxeles para pantalla
+  CM_TO_PIXELS: 28.35 * 1.33,
+}
+
+/**
+ * Convierte centímetros a píxeles para la previsualización
+ */
+export function cmToPixels(cm: number): number {
+  return cm * UNITS.CM_TO_PIXELS
+}
+
+/**
+ * Convierte centímetros a puntos para el PDF
+ */
+export function cmToPoints(cm: number): number {
+  return cm * UNITS.CM_TO_POINTS
+}
+
+/**
+ * Calcula la posición base según la esquina seleccionada
+ * (lógica para PDF - sistema de coordenadas bottom-left)
+ */
+export function calculateBasePosition(
+  cornerVertical: 'top' | 'bottom',
+  cornerHorizontal: 'left' | 'right',
+  pageWidth: number,
+  pageHeight: number,
+  separationX: number,
+  separationY: number
+) {
+  let baseX: number
+  let baseY: number
+
+  // Posición vertical (lógica para PDF - bottom-left)
+  if (cornerVertical === 'top') {
+    baseY = pageHeight - separationY
+  } else {
+    baseY = separationY
+  }
+
+  // Posición horizontal
+  if (cornerHorizontal === 'left') {
+    baseX = separationX
+  } else {
+    baseX = pageWidth - separationX
+  }
+
+  return { baseX, baseY }
+}
+
+/**
+ * Calcula la posición base según la esquina seleccionada
+ * (lógica para CSS overlay - sistema de coordenadas top-left)
+ */
+export function calculateBasePositionCSS(
+  cornerVertical: 'top' | 'bottom',
+  cornerHorizontal: 'left' | 'right',
+  pageWidth: number,
+  pageHeight: number,
+  separationX: number,
+  separationY: number
+) {
+  let baseX: number
+  let baseY: number
+
+  // Posición vertical (lógica para CSS - top-left)
+  if (cornerVertical === 'top') {
+    baseY = separationY
+  } else {
+    baseY = pageHeight - separationY
+  }
+
+  // Posición horizontal (igual que PDF)
+  if (cornerHorizontal === 'left') {
+    baseX = separationX
+  } else {
+    baseX = pageWidth - separationX
+  }
+
+  return { baseX, baseY }
+}
