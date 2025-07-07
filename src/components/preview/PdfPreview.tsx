@@ -266,6 +266,7 @@ export function PdfPreview() {
                   {pageDimensions.width > 0 && pageDimensions.height > 0 && (
                     <FolioOverlay
                       currentPage={currentPage}
+                      totalPages={numPages}
                       scale={scale}
                       pageWidth={pageDimensions.width * scale}
                       pageHeight={pageDimensions.height * scale}

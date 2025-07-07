@@ -3,9 +3,10 @@ import { Settings, CheckCircle, AlertCircle, Clock } from 'lucide-react'
 import { PositionConfig } from './PositionConfig'
 import { AppearanceConfig } from './AppearanceConfig'
 import { NumberingConfig } from './NumberingConfig'
+import { Button } from '@/components/ui/button'
 
 export function ConfigurationPanel() {
-  const [state] = useFoliadorStore()
+  const [state, send] = useFoliadorStore()
 
   // Determinar el estado actual
   const isConfiguring = state.matches('configuring')
@@ -86,6 +87,20 @@ export function ConfigurationPanel() {
             </span>
           </div>
         </div>
+
+        {/* Botón para editar configuración cuando está completado */}
+        {isCompleted && (
+          <div className="mt-3">
+            <Button
+              onClick={() => send({ type: 'EDIT_CONFIG' })}
+              variant="outline"
+              size="sm"
+              className="w-full"
+            >
+              Editar Configuración
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Información del archivo */}

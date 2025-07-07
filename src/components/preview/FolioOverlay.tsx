@@ -5,6 +5,7 @@ import { transparencyToOpacity } from '@/utils/transparencyUtils'
 
 interface FolioOverlayProps {
   currentPage: number
+  totalPages: number
   scale: number
   pageWidth: number
   pageHeight: number
@@ -12,6 +13,7 @@ interface FolioOverlayProps {
 
 export function FolioOverlay({
   currentPage,
+  totalPages,
   scale,
   pageWidth,
   pageHeight,
@@ -41,14 +43,14 @@ export function FolioOverlay({
     const zeroPadding = config?.zeroPadding || 6
     const direction = config?.direction || 'first'
 
-    // Calcular número de página según dirección
+    // Calcular número de folio según dirección
     let folioNumber = startNumber
     if (direction === 'first') {
+      // Numeración ascendente: página 1 = startNumber, página 2 = startNumber + 1, etc.
       folioNumber = startNumber + pageNumber - 1
     } else {
-      // Para dirección 'last', necesitaríamos el total de páginas
-      // Por ahora asumimos que es ascendente
-      folioNumber = startNumber + pageNumber - 1
+      // Numeración descendente: última página = startNumber, penúltima = startNumber + 1, etc.
+      folioNumber = startNumber + (totalPages - pageNumber)
     }
 
     // Generar texto según tipo de numeración

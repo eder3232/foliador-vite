@@ -10,6 +10,7 @@ import {
   Loader2,
   CheckCircle,
   AlertCircle,
+  Settings,
 } from 'lucide-react'
 
 export function ActionButtons() {
@@ -47,6 +48,11 @@ export function ActionButtons() {
   // Función para manejar nuevo archivo
   const handleNewFile = () => {
     send({ type: 'RESTART_AFTER_COMPLETE' })
+  }
+
+  // Función para manejar editar configuración
+  const handleEditConfig = () => {
+    send({ type: 'EDIT_CONFIG' })
   }
 
   // Función para manejar reintento
@@ -106,6 +112,19 @@ export function ActionButtons() {
             >
               <X className="h-4 w-4" />
               <span>Cancelar</span>
+            </Button>
+          )}
+
+          {/* Botón Editar Configuración */}
+          {isCompleted && (
+            <Button
+              onClick={handleEditConfig}
+              variant="outline"
+              className="flex items-center space-x-2"
+              size="lg"
+            >
+              <Settings className="h-4 w-4" />
+              <span>Editar Configuración</span>
             </Button>
           )}
 
@@ -203,7 +222,8 @@ export function ActionButtons() {
 
           {isCompleted && (
             <p className="text-sm text-green-600">
-              El PDF ha sido procesado exitosamente
+              El PDF ha sido procesado exitosamente. Puedes descargarlo o editar
+              la configuración.
             </p>
           )}
 

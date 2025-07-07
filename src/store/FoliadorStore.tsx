@@ -58,6 +58,7 @@ type PdfFolioOrchestratorEvents =
   | { type: 'RESTART_AFTER_COMPLETE' }
   | { type: 'UPDATE_PROGRESS'; progress: number }
   | { type: 'RESET' }
+  | { type: 'EDIT_CONFIG' }
 
 export const pdfFolioOrchestrator = setup({
   types: {
@@ -285,6 +286,9 @@ export const pdfFolioOrchestrator = setup({
       on: {
         DOWNLOAD_PDF: {
           actions: ['downloadPdf'],
+        },
+        EDIT_CONFIG: {
+          target: 'ready',
         },
         RESTART_AFTER_COMPLETE: {
           target: 'idle',

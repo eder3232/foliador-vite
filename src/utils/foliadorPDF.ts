@@ -52,26 +52,21 @@ export async function firmarPdf(
   // Calcular opacidad (0-1) desde transparencia (0-100)
   const opacity = transparencyToOpacity(config.transparency)
 
-  // Determinar orden de páginas según dirección
-  const pageIndices =
-    config.direction === 'first'
-      ? pages.map((_, i) => i)
-      : pages.map((_, i) => pages.length - 1 - i)
-
-  // Generar números de folio
+  // Generar números de folio según dirección
   const folioNumbers = generateFolioNumbers(
     config.startNumber,
     pages.length,
     config.numberingType,
-    config.zeroPadding
+    config.zeroPadding,
+    config.direction
   )
 
   // Separaciones fijas en centímetros (convertir a puntos: 1cm = 28.35 puntos)
-  const BASE_SEPARATION_X = initialSeparation.x * 28.35 // 4cm horizontal desde la esquina
-  const BASE_SEPARATION_Y = initialSeparation.y * 28.35 // 3cm vertical desde la esquina
+  const BASE_SEPARATION_X = initialSeparation.x * 28.35 // 3cm horizontal desde la esquina
+  const BASE_SEPARATION_Y = initialSeparation.y * 28.35 // 2cm vertical desde la esquina
 
   for (let i = 0; i < pages.length; i++) {
-    const page = pages[pageIndices[i]]
+    const page = pages[i]
     const pageWidth = page.getWidth()
     const pageHeight = page.getHeight()
 
@@ -105,60 +100,46 @@ export async function firmarPdf(
     const finalY = baseY + adjustmentY + randomY
     const finalRotation = config.rotation + randomRotation
 
-    // CÓDIGO ORIGINAL COMENTADO PARA DEBUG
     // Dibujar el número de folio
     if (config.numberingType === 'mixed') {
       // Para mixed: dibujar número arriba y letra abajo, ambos centrados
-      const currentNumber = config.startNumber + i
-      const numberText = currentNumber
-        .toString()
-        .padStart(config.zeroPadding, '0')
-      const letterText = numberToLetters(currentNumber)
+      const folioData = folioNumbers[i] as { numero: string; letra: string }
+      const currentNumber = folioData.numero
+      const currentLetter = folioData.letra
 
       // Número arriba
-      page.drawText(numberText, {
+      page.drawText(currentNumber, {
         x: finalX,
         y: finalY + config.fontSize * 0.5, // Un poco arriba
         size: config.fontSize,
         font,
         color: rgb(rgbColor.r, rgbColor.g, rgbColor.b),
-        opacity: opacity, //alpha,
+        opacity: opacity,
         rotate: degrees(finalRotation),
       })
 
       // Letra abajo
-      page.drawText(letterText, {
+      page.drawText(currentLetter, {
         x: finalX,
         y: finalY - config.fontSize * 0.5, // Un poco abajo
         size: config.fontSize,
         font,
         color: rgb(rgbColor.r, rgbColor.g, rgbColor.b),
-        opacity: opacity, //alpha,
+        opacity: opacity,
         rotate: degrees(finalRotation),
       })
     } else {
       // Para numbers y letters: dibujar solo un texto
-      page.drawText(folioNumbers[i], {
+      page.drawText(folioNumbers[i] as string, {
         x: finalX,
         y: finalY,
         size: config.fontSize,
         font,
         color: rgb(rgbColor.r, rgbColor.g, rgbColor.b),
-        opacity: opacity, //alpha,
+        opacity: opacity,
         rotate: degrees(finalRotation),
       })
     }
-
-    // DEBUG: Texto rojo gigante en el centro
-    // page.drawText(folioNumbers[i], {
-    //   x: pageWidth / 2 - 100,
-    //   y: pageHeight / 2,
-    //   size: 100,
-    //   font,
-    //   color: rgb(1, 0, 0), // Rojo brillante
-    //   opacity: 1,
-    //   rotate: degrees(0),
-    // })
   }
 
   const signedPdfBytes = await pdfDoc.save()
@@ -173,35 +154,41 @@ function hexToRgb(hex: string) {
   return { r, g, b }
 }
 
-// Generar números de folio según el tipo
+// Generar números de folio según el tipo y dirección
 function generateFolioNumbers(
   startNumber: number,
   totalPages: number,
   numberingType: 'numbers' | 'letters' | 'mixed',
-  zeroPadding: number
-): string[] {
-  const numbers: string[] = []
+  zeroPadding: number,
+  direction: 'first' | 'last'
+): (string | { numero: string; letra: string })[] {
+  const numbers: (string | { numero: string; letra: string })[] = []
 
   for (let i = 0; i < totalPages; i++) {
-    const currentNumber = startNumber + i
-    let folioText = ''
+    // Calcular número de folio según dirección
+    let folioNumber: number
+    if (direction === 'first') {
+      // Numeración ascendente: página 1 = startNumber, página 2 = startNumber + 1, etc.
+      folioNumber = startNumber + i
+    } else {
+      // Numeración descendente: última página = startNumber, penúltima = startNumber + 1, etc.
+      folioNumber = startNumber + (totalPages - 1 - i)
+    }
 
     switch (numberingType) {
       case 'numbers':
-        folioText = currentNumber.toString().padStart(zeroPadding, '0')
+        numbers.push(folioNumber.toString().padStart(zeroPadding, '0'))
         break
       case 'letters':
-        folioText = numberToLetters(currentNumber)
+        numbers.push(numberToLetters(folioNumber))
         break
       case 'mixed':
-        folioText =
-          i % 2 === 0
-            ? currentNumber.toString().padStart(zeroPadding, '0')
-            : numberToLetters(currentNumber)
+        // En modo mixto, siempre mostrar número arriba y letra abajo
+        const numero = folioNumber.toString().padStart(zeroPadding, '0')
+        const letra = numberToLetters(folioNumber)
+        numbers.push({ numero, letra })
         break
     }
-
-    numbers.push(folioText)
   }
 
   return numbers
