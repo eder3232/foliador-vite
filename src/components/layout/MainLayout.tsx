@@ -1,6 +1,5 @@
-import { useFoliadorStore } from '@/store/useFoliadorStore'
-import { ConfigurationPanel } from '../configuration/ConfigurationPanel'
 import { ActionButtons } from '../actions/ActionButtons'
+import { ConfigurationPanel } from '../configuration/ConfigurationPanel'
 import { PdfPreview } from '../preview/PdfPreview'
 
 interface MainLayoutProps {
